@@ -4,7 +4,7 @@ from app.database import user_manager
 
 app = Flask(__name__)
 
-# This handles CORS for all routes including Preflight (OPTIONS)
+# Allow React (Vite) to communicate with Flask
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 @app.route("/Login", methods=['POST'])
@@ -27,21 +27,22 @@ def login():
         return jsonify({"error": "Invalid email or password"}), 401
 
 @app.route('/signup', methods=['POST'])
-def signup_route(): # Renamed to avoid conflict
+def signup_route():
     data = request.get_json()
 
-    # Match the fields you want
-    required = ["firstname", "lastname", "phonenumber", "email", "password"]
+    # FIX: Changed "fullname" to "firstname" to match React state
+    required = ["firstname", "email", "password"]
+    
     if not all(k in data for k in required):
         return jsonify({"error": "Missing required fields"}), 400
     
-    # Use 'create_user' to match your database.py method name
+    # check_user handles the logic of checking existence and inserting
     user_id = user_manager.check_user(data) 
     
     if user_id:
         return jsonify({"message": f"Welcome {data['firstname']}!, Account Created"}), 201
     
-    return jsonify({"error": "User already exists"}), 409 # 409 means 'Conflict'
+    return jsonify({"error": "User already exists"}), 409
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)

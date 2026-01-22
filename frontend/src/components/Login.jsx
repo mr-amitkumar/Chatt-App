@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import axios from "axios";
 
 const Login = () => {
+  const navigate = useNavigate(); // Hook for redirection
   const [credient, setCredient] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false); // Added isError state
 
   const onhandleChange = (e) => {
     setCredient({ ...credient, [e.target.name]: e.target.value });
@@ -12,64 +14,79 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage(""); // Reset message on new attempt
+    setIsError(false); // Reset error state
+
     try {
-      // FIXED: Changed 'port' to 'post'
       const response = await axios.post(
         "http://localhost:8000/Login",
         credient
       );
 
-      // FIXED: Changed 'response.get.message' to 'response.data.message'
+      setIsError(false);
       setMessage(response.data.message);
-
-      console.log("User data:", response.data.user);
-
+      
+      // Save user to localStorage
       localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      console.log("Login Success:", response.data.user);
+
+      // Redirect to home/dashboard after 1.5 seconds
+      setTimeout(() => navigate("/"), 1500); 
+
     } catch (error) {
-      // This will display the error message from your Flask 'jsonify'
-      setMessage(error.response?.data?.error || "An error occurred");
+      setIsError(true);
+      // Display error from Flask or default message
+      setMessage(error.response?.data?.error || "Invalid login credentials");
     }
   };
+
   return (
     <div className="flex align-middle items-center h-screen bg-violet-700 justify-center">
-      <div className="flex flex-col bg-white w-[400px] h-[400px] justify-center items-center shadow-2xl rounded-md shadow-gray-800 drop-shadow-2xl">
-        <h1 className="text-3xl font-bold mb-4">Welcome to the XYZ </h1>
+      <div className="flex flex-col bg-white w-[400px] h-[450px] justify-center items-center shadow-2xl rounded-md">
+        <h1 className="text-5xl font-bold mb-1">Welcome</h1>
+        <h1 className="text-4xl font-bold mb-1 text-blue-600">To</h1>
+        <h1 className="text-3xl font-bold mb-6">The XYZ Chat</h1>
+        
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <input
             type="email"
             name="email"
             onChange={onhandleChange}
-            placeholder="email"
+            placeholder="Email"
             required
             autoComplete="off"
-            className="border-b-2 border-gray-400 w-[250px] text-green-600 outline-none font-semibold mb-4"
+            className="border-2 p-2 rounded-md border-blue-400 w-[250px] text-black outline-blue-600 font-semibold transition-all"
           />
           <input
             type="password"
             name="password"
             onChange={onhandleChange}
-            placeholder="password"
+            placeholder="Password"
             required
             autoComplete="off"
-            className="border-b-2 border-gray-400 w-[250px] text-red-600 outline-none font-semibold mb-4"
+            className="border-2 p-2 rounded-md border-blue-400 w-[250px] text-black outline-blue-600 font-semibold mb-3 transition-all"
           />
           <button
             type="submit"
-            className="border-none outline-none bg-green-700 p-2 text-white font-semibold font-sans hover:bg-green-600 transition-all durations-700 mb-2 rounded-md"
+            className="bg-blue-700 p-2 text-white font-semibold hover:bg-blue-600 transition-all rounded-md"
           >
             Login
           </button>
         </form>
-        <p className="flex text-sm gap-2 font-semibold">
-          {" "}
-          dont have account ?
-          <Link to="/SignUp"
-            className="hover:underline text-blue-500 visited:text-purple-700 mb-2"
-          >
+
+        <p className="flex text-sm gap-2 font-semibold mt-4">
+          don't have an account?
+          <Link to="/SignUp" className="hover:underline text-blue-500">
             Create One
           </Link>
         </p>
-        {message && <p className="text-blue-600 font-bold text-center">{message}</p>}
+
+        {message && (
+          <p className={`mt-3 text-sm font-bold text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
