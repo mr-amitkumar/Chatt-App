@@ -3,52 +3,77 @@ import certifi
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from bson import ObjectId
+from datetime import datetime
 
-# Load variables from .env file
 load_dotenv()
 
-# 1. Setup the SSL certificate bundle path using certifi
 ca = certifi.where()
 
-# 2. Connection Configuration
-# We use tlsCAFile and retry parameters to ensure a stable connection
 try:
     client = MongoClient(
         os.getenv("MONGO_DETAILS"),
         tls=True,
         tlsCAFile=ca,
-        retryWrites=True,           # Automatically retry failed write operations
-        retryReads=True,            # Automatically retry failed read operations
-        connectTimeoutMS=30000,     # 30 seconds to establish initial connection
-        serverSelectionTimeoutMS=5000 # Wait 5 seconds before giving up on a specific server
+        retryWrites=True,
+        retryReads=True,
+        connectTimeoutMS=30000,
+        serverSelectionTimeoutMS=5000
     )
-    # The 'ping' command forces an immediate connection check
     client.admin.command('ping')
     print("✅ MongoDB Connected Automatically")
 except Exception as e:
     print(f"❌ Database connection failed: {e}")
 
-# 3. Define the database and collection
 database = client.social_db
 user_collection = database.get_collection("users")
+posts_collection = database.get_collection("posts")
+
+class PostManager:
+    def __init__(self, collection):
+        self.posts_collection = collection
+    
+    def save_to_db(self, text, user_name):
+        try:
+            post_doc = {
+                "text": text,
+                "firstname": user_name,
+                "createdAt": datetime.utcnow() 
+            }
+            result = self.posts_collection.insert_one(post_doc)
+            post_doc["_id"] = str(result.inserted_id)
+            post_doc["time"] = post_doc["createdAt"].strftime("%I:%M %p")
+            return post_doc
+        except Exception as e:
+            print(f"Error saving post: {e}")
+            return None
+
+    def get_all_posts(self):
+        try:
+            posts = list(self.posts_collection.find().sort("createdAt", -1))
+            for post in posts:
+                post["_id"] = str(post["_id"])
+                if "createdAt" in post:
+                    post["time"] = post["createdAt"].strftime("%I:%M %p")
+                    del post["createdAt"] 
+            return posts
+        except Exception as e:
+            print(f"Error fetching posts: {e}")
+            return []
 
 class UserManager:
     def __init__(self, collection):
         self.user_collections = collection
     
     def check_user(self, user_data):
-        """Checks if user exists; if not, inserts and returns the ID string."""
         try:
             if self.user_collections.find_one({"email": user_data["email"]}):
                 return None
-            
             result = self.user_collections.insert_one(user_data)
             return str(result.inserted_id)
         except Exception:
             return None
         
     def get_user(self, email, password):
-        """Finds user by credentials and converts ObjectId to string."""
         try:
             user = self.user_collections.find_one({
                 "email": email,
@@ -60,5 +85,5 @@ class UserManager:
         except Exception:
             return None
 
-# 4. Initialize the manager instance
 user_manager = UserManager(user_collection)
+post_manager = PostManager(posts_collection)

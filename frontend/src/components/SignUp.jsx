@@ -36,16 +36,23 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex items-center h-screen bg-violet-700 justify-center">
-      <div className="flex flex-col bg-white w-[350px] p-6 justify-center items-center shadow-2xl rounded-md">
-        <h2 className="text-3xl font-bold mb-4">Sign Up</h2>
+    <div className="flex items-center h-screen bg-black justify-center">
+      <div className="mr-48">
+        <h1 className="text-6xl text-white font-bold mb-1">Welcome</h1>
+        <h1 className="text-5xl font-bold mb-1 text-blue-600">To</h1>
+        <h1 className="text-4xl text-white font-bold mb-6">Y Chat</h1>
+      </div>
+      <div className="flex flex-col bg-transparent text-white p-6 justify-center items-center shadow-2xl rounded-md">
+        <h1 className="text-4xl font-bold">Register Here</h1>
+        <h1 className="text-3xl font-bold">To Connect.</h1>
+        <h1 className="text-5xl  mb-3">And Find Your Heart</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
             name="firstname"
             placeholder="Full Name"
             onChange={handleChange}
             required
-            className="border-2 p-2 rounded-md border-blue-400 w-[250px] outline-blue-600 font-semibold"
+            className="border-2 px-4 py-3 rounded-md border-gray-800 w-[350px] text-white focus:border-blue-600 font-semibold transition-all bg-transparent outline-none"
           />
           <input
             name="email"
@@ -53,7 +60,7 @@ const Signup = () => {
             placeholder="Email"
             onChange={handleChange}
             required
-            className="border-2 p-2 rounded-md border-blue-400 w-[250px] outline-blue-600 font-semibold"
+            className="border-2 px-4 py-3 rounded-md border-gray-800 w-[350px] text-white focus:border-blue-600 font-semibold transition-all bg-transparent outline-none"
           />
           <input
             name="password"
@@ -61,19 +68,29 @@ const Signup = () => {
             placeholder="Password"
             onChange={handleChange}
             required
-            className="border-2 p-2 rounded-md border-blue-400 w-[250px] outline-blue-600 font-semibold"
+            className="border-2 px-4 py-3 rounded-md border-gray-800 w-[350px] text-white focus:border-blue-600 font-semibold transition-all mb-3 bg-transparent outline-none"
           />
           <button type="submit" className="bg-blue-700 p-2 text-white font-semibold hover:bg-blue-600 transition-all rounded-md">
             Signup
           </button>
         </form>
+        <div className="text-gray-500 text-sm flex flex-col">
+          <p>
+            By clicking signup you will agree with
+            <strong className="text-blue-500"> terms of services</strong> and
+          </p>
+          <p>
+            <strong className="text-blue-500">privacy policy</strong>, along
+            with <strong className="text-blue-500">cokkies</strong>
+          </p>
+        </div>
         
-        <p className="flex text-sm gap-2 font-semibold mt-4">
+        <p className="text-gray-500 mt-3 text-xl mb-2">
           already have account ?
-          <Link to="/Login" className="hover:underline text-blue-500">
+        </p>
+          <Link to="/Login" className="text-white border-2 border-gray-800 rounded-md p-2 w-[350px] text-center">
             Login Here
           </Link>
-        </p>
 
         {message && (
           <p className={`mt-3 text-sm font-bold text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>

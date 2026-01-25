@@ -1,11 +1,39 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from app.database import user_manager
+# CHANGE THIS LINE: Use 'app.database' to match your folder structure
+from app.database import user_manager, post_manager 
 
 app = Flask(__name__)
 
 # Allow React (Vite) to communicate with Flask
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+
+# --- POST ROUTES ---
+
+@app.route('/api/posts', methods=['GET'])
+def get_all_posts_route():
+    try:
+        posts = post_manager.get_all_posts()
+        return jsonify(posts), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/posts', methods=['POST'])
+def create_post_route():
+    data = request.get_json()
+    text = data.get('text')
+    user_name = data.get('firstname')
+    
+    if not text or not user_name:
+        return jsonify({"error": "Missing text or name"}), 400
+
+    new_post = post_manager.save_to_db(text, user_name)
+    if new_post:
+        return jsonify(new_post), 201
+    
+    return jsonify({"error": "Failed to save post"}), 500
+
+# --- AUTH ROUTES ---
 
 @app.route("/Login", methods=['POST'])
 def login():
@@ -29,14 +57,11 @@ def login():
 @app.route('/signup', methods=['POST'])
 def signup_route():
     data = request.get_json()
-
-    # FIX: Changed "fullname" to "firstname" to match React state
     required = ["firstname", "email", "password"]
     
     if not all(k in data for k in required):
         return jsonify({"error": "Missing required fields"}), 400
     
-    # check_user handles the logic of checking existence and inserting
     user_id = user_manager.check_user(data) 
     
     if user_id:
